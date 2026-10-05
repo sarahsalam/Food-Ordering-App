@@ -1,0 +1,16 @@
+@FoodOrdering.Api_HostAddress = http://localhost:5145
+
+GET {{FoodOrdering.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+@accessToken = replace-with-access-token
+@branchId = 00000000-0000-0000-0000-000000000000
+POST {{FoodOrdering.Api_HostAddress}}/api/checkout
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "branchId": "{{branchId}}",
+  "deliveryAddress": "123 Main Street"
+}

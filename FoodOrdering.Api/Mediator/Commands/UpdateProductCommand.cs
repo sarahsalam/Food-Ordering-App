@@ -1,0 +1,8 @@
+using FoodOrdering.Api.Models.Requests;
+using FoodOrdering.Api.Models.Responses;
+using MediatR;
+
+namespace FoodOrdering.Api.Mediator.Commands;
+
+public record UpdateProductCommand(Guid Id, UpdateProductRequest Request)
+    : IRequest<(bool Success, string? Error, ProductResponse? Data)>;
