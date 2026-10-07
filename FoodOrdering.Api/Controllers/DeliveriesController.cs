@@ -1,8 +1,6 @@
-using FoodOrdering.Api.Models.Requests;
-using FoodOrdering.Api.Security;
-using FoodOrdering.Api.Services;
-using FoodOrdering.Api.Mediator.Commands;
-using FoodOrdering.Api.Mediator.Queries;
+using FoodOrdering.Application.DTOs.Requests;
+using FoodOrdering.Application.Mediator.Commands;
+using FoodOrdering.Application.Mediator.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +23,15 @@ public class DeliveriesController : ControllerBase
     public async Task<IActionResult> Get()
     {
         var result = await _mediator.Send(new DeliveriesGetQuery(User));
-        return ToResponse(result);
+        return result.Outcome switch
+        {
+            ServiceOutcome.Success => Ok(new { message = "Assigned deliveries retrieved successfully.", data = result.Data }),
+            ServiceOutcome.Created => StatusCode(201, new { message = "Assigned deliveries retrieved successfully.", data = result.Data }),
+            ServiceOutcome.Invalid => BadRequest(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Assigned deliveries: The input is invalid.", data = result.Data }),
+            ServiceOutcome.Conflict => Conflict(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Assigned deliveries: The current state prevents this operation.", data = result.Data }),
+            ServiceOutcome.NotFound => NotFound(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Unable to retrieve assigned deliveries.", data = result.Data }),
+            _ => throw new InvalidOperationException("Unknown service outcome.")
+        };
     }
 
     [Authorize(Policy = PermissionNames.DeliveryUpdateAssigned)]
@@ -33,25 +39,15 @@ public class DeliveriesController : ControllerBase
     public async Task<IActionResult> UpdateStatus(Guid id, ChangeOrderStatusRequest request)
     {
         var result = await _mediator.Send(new DeliveriesUpdateStatusCommand(id, request, User));
-        return ToResponse(result);
+        return result.Outcome switch
+        {
+            ServiceOutcome.Success => Ok(new { message = "Delivery status updated successfully.", data = result.Data }),
+            ServiceOutcome.Created => StatusCode(201, new { message = "Delivery status updated successfully.", data = result.Data }),
+            ServiceOutcome.Invalid => BadRequest(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Delivery status: The input is invalid.", data = result.Data }),
+            ServiceOutcome.Conflict => Conflict(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Delivery status: The current state prevents this operation.", data = result.Data }),
+            ServiceOutcome.NotFound => NotFound(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Unable to update this delivery status.", data = result.Data }),
+            _ => throw new InvalidOperationException("Unknown service outcome.")
+        };
     }
 
-    private IActionResult ToResponse(ServiceResult result)
-    {
-        switch (result.Outcome)
-        {
-            case ServiceOutcome.Success:
-                return Ok(result.Data);
-            case ServiceOutcome.Created:
-                return StatusCode(201, result.Data);
-            case ServiceOutcome.Invalid:
-                return BadRequest(result.Data);
-            case ServiceOutcome.Conflict:
-                return Conflict(result.Data);
-            case ServiceOutcome.NotFound:
-                return result.Data == null ? NotFound() : NotFound(result.Data);
-            default:
-                throw new InvalidOperationException("Unknown service outcome.");
-        }
-    }
 }

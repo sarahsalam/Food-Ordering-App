@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using FoodOrdering.Api.Security;
-using FoodOrdering.Api.Mediator.Commands;
-using FoodOrdering.Api.Mediator.Queries;
-using FoodOrdering.Api.Models.Requests;
+using FoodOrdering.Application.DTOs.Requests;
+using FoodOrdering.Application.Mediator.Commands;
+using FoodOrdering.Application.Mediator.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,14 +23,14 @@ public class OrderItemsController : ControllerBase
     public async Task<IActionResult> GetByOrder(Guid orderId)
     {
         var result = await _mediator.Send(new OrderItemsQuery(orderId));
-        return result.Exists ? Ok(result.Data) : NotFound();
+        return result.Exists ? Ok(new { message = "Order items retrieved successfully.", data = result.Data }) : NotFound(new { message = "Order not found." });
     }
 
     [HttpGet("order-items/{id:guid}")]
     public async Task<IActionResult> Get(Guid id)
     {
         var result = await _mediator.Send(new OrderItemQuery(id));
-        return result == null ? NotFound() : Ok(result);
+        return result == null ? NotFound(new { message = "Order item not found." }) : Ok(new { message = "Order item retrieved successfully.", data = result });
     }
 
     [NonAction]
@@ -42,16 +41,16 @@ public class OrderItemsController : ControllerBase
         {
             if (result.Error?.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return NotFound(new { message = result.Error });
+                return NotFound(new { message = result.Error ?? "Unable to complete Create for OrderItems." });
             }
 
-            return BadRequest(new { message = result.Error });
+            return BadRequest(new { message = result.Error ?? "Unable to complete Create for OrderItems." });
         }
 
         return CreatedAtAction(
             nameof(Get),
             new { id = result.Data!.Id },
-            result.Data);
+            new { message = "Order item created successfully.", data = result.Data });
     }
 
     [NonAction]
@@ -62,12 +61,12 @@ public class OrderItemsController : ControllerBase
         {
             if (result.Error?.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return NotFound(new { message = result.Error });
+                return NotFound(new { message = result.Error ?? "Unable to complete Update for OrderItems." });
             }
 
-            return BadRequest(new { message = result.Error });
+            return BadRequest(new { message = result.Error ?? "Unable to complete Update for OrderItems." });
         }
 
-        return Ok(result.Data);
+        return Ok(new { message = "Order item updated successfully.", data = result.Data });
     }
 }

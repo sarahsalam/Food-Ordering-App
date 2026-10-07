@@ -861,6 +861,49 @@
             "related": ".xml"
           }
         }
+      },
+      "FoodOrdering.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "FoodOrdering.Domain": "1.0.0",
+          "MediatR": "14.2.0"
+        },
+        "compile": {
+          "bin/placeholder/FoodOrdering.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FoodOrdering.Application.dll": {}
+        }
+      },
+      "FoodOrdering.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/FoodOrdering.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FoodOrdering.Domain.dll": {}
+        }
+      },
+      "FoodOrdering.Infrastructure/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "FoodOrdering.Application": "1.0.0",
+          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "10.0.12",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.3",
+          "System.IdentityModel.Tokens.Jwt": "8.19.2"
+        },
+        "compile": {
+          "bin/placeholder/FoodOrdering.Infrastructure.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FoodOrdering.Infrastructure.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
       }
     }
   },
@@ -2672,10 +2715,27 @@
         "system.identitymodel.tokens.jwt.8.19.2.nupkg.sha512",
         "system.identitymodel.tokens.jwt.nuspec"
       ]
+    },
+    "FoodOrdering.Application/1.0.0": {
+      "type": "project",
+      "path": "../FoodOrdering.Application/FoodOrdering.Application.csproj",
+      "msbuildProject": "../FoodOrdering.Application/FoodOrdering.Application.csproj"
+    },
+    "FoodOrdering.Domain/1.0.0": {
+      "type": "project",
+      "path": "../FoodOrdering.Domain/FoodOrdering.Domain.csproj",
+      "msbuildProject": "../FoodOrdering.Domain/FoodOrdering.Domain.csproj"
+    },
+    "FoodOrdering.Infrastructure/1.0.0": {
+      "type": "project",
+      "path": "../FoodOrdering.Infrastructure/FoodOrdering.Infrastructure.csproj",
+      "msbuildProject": "../FoodOrdering.Infrastructure/FoodOrdering.Infrastructure.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
+      "FoodOrdering.Application >= 1.0.0",
+      "FoodOrdering.Infrastructure >= 1.0.0",
       "MediatR >= 14.2.0",
       "Microsoft.AspNetCore.Authentication.JwtBearer >= 10.0.12",
       "Microsoft.AspNetCore.Identity.EntityFrameworkCore >= 10.0.12",
@@ -2709,7 +2769,14 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Application/FoodOrdering.Application.csproj": {
+              "projectPath": "/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Application/FoodOrdering.Application.csproj"
+            },
+            "/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Infrastructure/FoodOrdering.Infrastructure.csproj": {
+              "projectPath": "/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Infrastructure/FoodOrdering.Infrastructure.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

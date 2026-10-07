@@ -1,8 +1,6 @@
-using FoodOrdering.Api.Models.Requests;
-using FoodOrdering.Api.Security;
-using FoodOrdering.Api.Services;
-using FoodOrdering.Api.Mediator.Commands;
-using FoodOrdering.Api.Mediator.Queries;
+using FoodOrdering.Application.DTOs.Requests;
+using FoodOrdering.Application.Mediator.Commands;
+using FoodOrdering.Application.Mediator.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,39 +23,45 @@ public class RestaurantOperationsController : ControllerBase
     public async Task<IActionResult> Orders(Guid restaurantId)
     {
         var result = await _mediator.Send(new RestaurantOperationsOrdersQuery(restaurantId, User));
-        return ToResponse(result);
+        return result.Outcome switch
+        {
+            ServiceOutcome.Success => Ok(new { message = "Restaurant orders retrieved successfully.", data = result.Data }),
+            ServiceOutcome.Created => StatusCode(201, new { message = "Restaurant orders retrieved successfully.", data = result.Data }),
+            ServiceOutcome.Invalid => BadRequest(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Restaurant orders: The input is invalid.", data = result.Data }),
+            ServiceOutcome.Conflict => Conflict(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Restaurant orders: The current state prevents this operation.", data = result.Data }),
+            ServiceOutcome.NotFound => NotFound(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Restaurant not found.", data = result.Data }),
+            _ => throw new InvalidOperationException("Unknown service outcome.")
+        };
     }
 
     [HttpPut("orders/{id:guid}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, ChangeOrderStatusRequest request)
     {
         var result = await _mediator.Send(new RestaurantOperationsUpdateStatusCommand(id, request, User));
-        return ToResponse(result);
+        return result.Outcome switch
+        {
+            ServiceOutcome.Success => Ok(new { message = "Order status updated successfully.", data = result.Data }),
+            ServiceOutcome.Created => StatusCode(201, new { message = "Order status updated successfully.", data = result.Data }),
+            ServiceOutcome.Invalid => BadRequest(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Order status: The input is invalid.", data = result.Data }),
+            ServiceOutcome.Conflict => Conflict(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Order status: The current state prevents this operation.", data = result.Data }),
+            ServiceOutcome.NotFound => NotFound(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Unable to update this order status.", data = result.Data }),
+            _ => throw new InvalidOperationException("Unknown service outcome.")
+        };
     }
 
     [HttpPut("orders/{id:guid}/rider")]
     public async Task<IActionResult> AssignRider(Guid id, AssignRiderRequest request)
     {
         var result = await _mediator.Send(new RestaurantOperationsAssignRiderCommand(id, request, User));
-        return ToResponse(result);
+        return result.Outcome switch
+        {
+            ServiceOutcome.Success => Ok(new { message = "Rider assigned to order successfully.", data = result.Data }),
+            ServiceOutcome.Created => StatusCode(201, new { message = "Rider assigned to order successfully.", data = result.Data }),
+            ServiceOutcome.Invalid => BadRequest(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Rider: The input is invalid.", data = result.Data }),
+            ServiceOutcome.Conflict => Conflict(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Rider: The current state prevents this operation.", data = result.Data }),
+            ServiceOutcome.NotFound => NotFound(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Unable to assign a rider to this order.", data = result.Data }),
+            _ => throw new InvalidOperationException("Unknown service outcome.")
+        };
     }
 
-    private IActionResult ToResponse(ServiceResult result)
-    {
-        switch (result.Outcome)
-        {
-            case ServiceOutcome.Success:
-                return Ok(result.Data);
-            case ServiceOutcome.Created:
-                return StatusCode(201, result.Data);
-            case ServiceOutcome.Invalid:
-                return BadRequest(result.Data);
-            case ServiceOutcome.Conflict:
-                return Conflict(result.Data);
-            case ServiceOutcome.NotFound:
-                return result.Data == null ? NotFound() : NotFound(result.Data);
-            default:
-                throw new InvalidOperationException("Unknown service outcome.");
-        }
-    }
 }

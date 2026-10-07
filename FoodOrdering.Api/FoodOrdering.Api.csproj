@@ -19,4 +19,9 @@
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\FoodOrdering.Application\FoodOrdering.Application.csproj" />
+      <ProjectReference Include="..\FoodOrdering.Infrastructure\FoodOrdering.Infrastructure.csproj" />
+    </ItemGroup>
+
 </Project>

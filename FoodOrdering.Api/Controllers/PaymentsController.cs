@@ -1,7 +1,5 @@
-using FoodOrdering.Api.Models.Requests;
-using FoodOrdering.Api.Security;
-using FoodOrdering.Api.Services;
-using FoodOrdering.Api.Mediator.Commands;
+using FoodOrdering.Application.DTOs.Requests;
+using FoodOrdering.Application.Mediator.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +22,15 @@ public class PaymentsController : ControllerBase
     public async Task<IActionResult> Collect(Guid orderId, PaymentActionRequest request)
     {
         var result = await _mediator.Send(new PaymentsCollectCommand(orderId, request, User));
-        return ToResponse(result);
+        return result.Outcome switch
+        {
+            ServiceOutcome.Success => Ok(new { message = "Order payment collected successfully.", data = result.Data }),
+            ServiceOutcome.Created => StatusCode(201, new { message = "Order payment collected successfully.", data = result.Data }),
+            ServiceOutcome.Invalid => BadRequest(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Order payment: The input is invalid.", data = result.Data }),
+            ServiceOutcome.Conflict => Conflict(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Order payment: The current state prevents this operation.", data = result.Data }),
+            ServiceOutcome.NotFound => NotFound(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Unable to collect payment for this order.", data = result.Data }),
+            _ => throw new InvalidOperationException("Unknown service outcome.")
+        };
     }
 
     [Authorize(Policy = PermissionNames.PaymentsReceive)]
@@ -32,25 +38,15 @@ public class PaymentsController : ControllerBase
     public async Task<IActionResult> SubmitToOwner(Guid orderId, PaymentActionRequest request)
     {
         var result = await _mediator.Send(new PaymentsSubmitToOwnerCommand(orderId, request, User));
-        return ToResponse(result);
+        return result.Outcome switch
+        {
+            ServiceOutcome.Success => Ok(new { message = "Payment submitted to restaurant owner successfully.", data = result.Data }),
+            ServiceOutcome.Created => StatusCode(201, new { message = "Payment submitted to restaurant owner successfully.", data = result.Data }),
+            ServiceOutcome.Invalid => BadRequest(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Payment: The input is invalid.", data = result.Data }),
+            ServiceOutcome.Conflict => Conflict(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Payment: The current state prevents this operation.", data = result.Data }),
+            ServiceOutcome.NotFound => NotFound(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Unable to submit this payment to the restaurant owner.", data = result.Data }),
+            _ => throw new InvalidOperationException("Unknown service outcome.")
+        };
     }
 
-    private IActionResult ToResponse(ServiceResult result)
-    {
-        switch (result.Outcome)
-        {
-            case ServiceOutcome.Success:
-                return Ok(result.Data);
-            case ServiceOutcome.Created:
-                return StatusCode(201, result.Data);
-            case ServiceOutcome.Invalid:
-                return BadRequest(result.Data);
-            case ServiceOutcome.Conflict:
-                return Conflict(result.Data);
-            case ServiceOutcome.NotFound:
-                return result.Data == null ? NotFound() : NotFound(result.Data);
-            default:
-                throw new InvalidOperationException("Unknown service outcome.");
-        }
-    }
 }

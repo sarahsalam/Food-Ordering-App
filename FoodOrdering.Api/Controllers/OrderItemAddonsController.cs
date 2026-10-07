@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using FoodOrdering.Api.Security;
-using FoodOrdering.Api.Mediator.Commands;
-using FoodOrdering.Api.Mediator.Queries;
-using FoodOrdering.Api.Models.Requests;
+using FoodOrdering.Application.DTOs.Requests;
+using FoodOrdering.Application.Mediator.Commands;
+using FoodOrdering.Application.Mediator.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,14 +23,14 @@ public class OrderItemAddonsController : ControllerBase
     public async Task<IActionResult> GetByItem(Guid orderItemId)
     {
         var result = await _mediator.Send(new OrderItemAddonsQuery(orderItemId));
-        return result.Exists ? Ok(result.Data) : NotFound();
+        return result.Exists ? Ok(new { message = "Order item addons retrieved successfully.", data = result.Data }) : NotFound(new { message = "Order item not found." });
     }
 
     [HttpGet("order-item-addons/{id:guid}")]
     public async Task<IActionResult> Get(Guid id)
     {
         var result = await _mediator.Send(new OrderItemAddonQuery(id));
-        return result == null ? NotFound() : Ok(result);
+        return result == null ? NotFound(new { message = "Order item addon not found." }) : Ok(new { message = "Order item addon retrieved successfully.", data = result });
     }
 
     [NonAction]
@@ -42,16 +41,16 @@ public class OrderItemAddonsController : ControllerBase
         {
             if (result.Error?.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return NotFound(new { message = result.Error });
+                return NotFound(new { message = result.Error ?? "Unable to complete Create for OrderItemAddons." });
             }
 
-            return BadRequest(new { message = result.Error });
+            return BadRequest(new { message = result.Error ?? "Unable to complete Create for OrderItemAddons." });
         }
 
         return CreatedAtAction(
             nameof(Get),
             new { id = result.Data!.Id },
-            result.Data);
+            new { message = "Order item addon created successfully.", data = result.Data });
     }
 
     [NonAction]
@@ -60,7 +59,7 @@ public class OrderItemAddonsController : ControllerBase
         var result = await _mediator.Send(new DeleteOrderItemAddonCommand(id));
         if (!result.Success)
         {
-            return NotFound(new { message = result.Error });
+            return NotFound(new { message = result.Error ?? "Unable to complete Delete for OrderItemAddons." });
         }
 
         return Ok(new { message = "Order item addon deleted successfully." });
@@ -74,12 +73,12 @@ public class OrderItemAddonsController : ControllerBase
         {
             if (result.Error?.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return NotFound(new { message = result.Error });
+                return NotFound(new { message = result.Error ?? "Unable to complete Update for OrderItemAddons." });
             }
 
-            return BadRequest(new { message = result.Error });
+            return BadRequest(new { message = result.Error ?? "Unable to complete Update for OrderItemAddons." });
         }
 
-        return Ok(result.Data);
+        return Ok(new { message = "Order item addon updated successfully.", data = result.Data });
     }
 }

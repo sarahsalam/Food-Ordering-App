@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using FoodOrdering.Api.Security;
-using FoodOrdering.Api.Mediator.Commands;
-using FoodOrdering.Api.Mediator.Queries;
-using FoodOrdering.Api.Models.Requests;
+using FoodOrdering.Application.DTOs.Requests;
+using FoodOrdering.Application.Mediator.Commands;
+using FoodOrdering.Application.Mediator.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,14 +23,14 @@ public class ProductVariantsController : ControllerBase
         [FromQuery] bool? isActive)
     {
         var result = await _mediator.Send(new VariantsQuery(productId, new(search, isActive)));
-        return result.Exists ? Ok(result.Data) : NotFound();
+        return result.Exists ? Ok(new { message = "Product variants retrieved successfully.", data = result.Data }) : NotFound(new { message = "Product not found." });
     }
 
     [HttpGet("product-variants/{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _mediator.Send(new ProductVariantQuery(id));
-        return result == null ? NotFound() : Ok(result);
+        return result == null ? NotFound(new { message = "Product variant not found." }) : Ok(new { message = "Product variant retrieved successfully.", data = result });
     }
 
     [HttpPost("products/{productId:guid}/variants")]
@@ -41,13 +40,13 @@ public class ProductVariantsController : ControllerBase
         var result = await _mediator.Send(new CreateProductVariantCommand(productId, request));
         if (!result.Success)
         {
-            return NotFound(new { message = result.Error });
+            return NotFound(new { message = result.Error ?? "Unable to complete Create for ProductVariants." });
         }
 
         return CreatedAtAction(
             nameof(GetById),
             new { id = result.Data!.Id },
-            result.Data);
+            new { message = "Product variant created successfully.", data = result.Data });
     }
 
     [HttpPut("product-variants/{id:guid}")]
@@ -57,10 +56,10 @@ public class ProductVariantsController : ControllerBase
         var result = await _mediator.Send(new UpdateProductVariantCommand(id, request));
         if (!result.Success)
         {
-            return NotFound(new { message = result.Error });
+            return NotFound(new { message = result.Error ?? "Unable to complete Update for ProductVariants." });
         }
 
-        return Ok(result.Data);
+        return Ok(new { message = "Product variant updated successfully.", data = result.Data });
     }
 
     [HttpDelete("product-variants/{id:guid}")]
@@ -70,7 +69,7 @@ public class ProductVariantsController : ControllerBase
         var result = await _mediator.Send(new DeleteProductVariantCommand(id));
         if (!result.Success)
         {
-            return NotFound(new { message = result.Error });
+            return NotFound(new { message = result.Error ?? "Unable to complete Delete for ProductVariants." });
         }
 
         return Ok(new { message = "Product variant deleted successfully." });

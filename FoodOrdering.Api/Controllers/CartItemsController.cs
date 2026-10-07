@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using FoodOrdering.Api.Security;
-using FoodOrdering.Api.Mediator.Commands;
-using FoodOrdering.Api.Mediator.Queries;
-using FoodOrdering.Api.Models.Requests;
+using FoodOrdering.Application.DTOs.Requests;
+using FoodOrdering.Application.Mediator.Commands;
+using FoodOrdering.Application.Mediator.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,14 +23,14 @@ public class CartItemsController : ControllerBase
     public async Task<IActionResult> GetByCart(Guid cartId)
     {
         var result = await _mediator.Send(new CartItemsQuery(cartId));
-        return result.Exists ? Ok(result.Data) : NotFound();
+        return result.Exists ? Ok(new { message = "Cart items retrieved successfully.", data = result.Data }) : NotFound(new { message = "Cart not found." });
     }
 
     [HttpGet("cart-items/{id:guid}")]
     public async Task<IActionResult> Get(Guid id)
     {
         var result = await _mediator.Send(new CartItemQuery(id));
-        return result == null ? NotFound() : Ok(result);
+        return result == null ? NotFound(new { message = "Cart item not found." }) : Ok(new { message = "Cart item retrieved successfully.", data = result });
     }
 
     [HttpPost("carts/{cartId:guid}/items")]
@@ -42,16 +41,16 @@ public class CartItemsController : ControllerBase
         {
             if (result.Error?.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return NotFound(new { message = result.Error });
+                return NotFound(new { message = result.Error ?? "Unable to complete Create for CartItems." });
             }
 
-            return BadRequest(new { message = result.Error });
+            return BadRequest(new { message = result.Error ?? "Unable to complete Create for CartItems." });
         }
 
         return CreatedAtAction(
             nameof(Get),
             new { id = result.Data!.Id },
-            result.Data);
+            new { message = "Cart item created successfully.", data = result.Data });
     }
 
     [HttpPut("cart-items/{id:guid}")]
@@ -62,13 +61,13 @@ public class CartItemsController : ControllerBase
         {
             if (result.Error?.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return NotFound(new { message = result.Error });
+                return NotFound(new { message = result.Error ?? "Unable to complete Update for CartItems." });
             }
 
-            return BadRequest(new { message = result.Error });
+            return BadRequest(new { message = result.Error ?? "Unable to complete Update for CartItems." });
         }
 
-        return Ok(result.Data);
+        return Ok(new { message = "Cart item updated successfully.", data = result.Data });
     }
 
     [HttpDelete("cart-items/{id:guid}")]
@@ -77,7 +76,7 @@ public class CartItemsController : ControllerBase
         var result = await _mediator.Send(new DeleteCartItemCommand(id));
         if (!result.Success)
         {
-            return NotFound(new { message = result.Error });
+            return NotFound(new { message = result.Error ?? "Unable to complete Delete for CartItems." });
         }
 
         return Ok(new { message = "Cart item deleted successfully." });

@@ -132,3 +132,10 @@
 /home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Api/bin/Debug/net10.0/System.IdentityModel.Tokens.Jwt.dll
 /home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Api/bin/Debug/net10.0/MediatR.dll
 /home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Api/bin/Debug/net10.0/MediatR.Contracts.dll
+/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Api/bin/Debug/net10.0/FoodOrdering.Application.dll
+/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Api/bin/Debug/net10.0/FoodOrdering.Domain.dll
+/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Api/bin/Debug/net10.0/FoodOrdering.Infrastructure.dll
+/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Api/bin/Debug/net10.0/FoodOrdering.Application.pdb
+/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Api/bin/Debug/net10.0/FoodOrdering.Infrastructure.pdb
+/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Api/bin/Debug/net10.0/FoodOrdering.Domain.pdb
+/home/zeeshan/RiderProjects/FoodOrdering/FoodOrdering.Api/obj/Debug/net10.0/FoodOrdering.Api.sourcelink.json

@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using FoodOrdering.Api.Security;
-using FoodOrdering.Api.Mediator.Commands;
-using FoodOrdering.Api.Mediator.Queries;
-using FoodOrdering.Api.Models.Requests;
+using FoodOrdering.Application.DTOs.Requests;
+using FoodOrdering.Application.Mediator.Commands;
+using FoodOrdering.Application.Mediator.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,14 +25,14 @@ public class CategoriesController : ControllerBase
     {
         var result = await _mediator.Send(
             new GetCategoriesByRestaurantQuery(restaurantId, query));
-        return result.Exists ? Ok(result.Data) : NotFound();
+        return result.Exists ? Ok(new { message = "Categories retrieved successfully.", data = result.Data }) : NotFound(new { message = "Restaurant not found." });
     }
 
     [HttpGet("categories/{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var category = await _mediator.Send(new GetCategoryByIdQuery(id));
-        return category == null ? NotFound() : Ok(category);
+        return category == null ? NotFound(new { message = "Category not found." }) : Ok(new { message = "Category retrieved successfully.", data = category });
     }
 
     [HttpPost("restaurants/{restaurantId:guid}/categories")]
@@ -46,13 +45,13 @@ public class CategoriesController : ControllerBase
             new CreateCategoryCommand(restaurantId, request));
         if (!result.Success)
         {
-            return NotFound(new { message = result.Error });
+            return NotFound(new { message = result.Error ?? "Unable to complete Create for Categories." });
         }
 
         return CreatedAtAction(
             nameof(GetById),
             new { id = result.Data!.Id },
-            result.Data);
+            new { message = "Category created successfully.", data = result.Data });
     }
 
     [HttpPut("categories/{id:guid}")]
@@ -62,10 +61,10 @@ public class CategoriesController : ControllerBase
         var result = await _mediator.Send(new UpdateCategoryCommand(id, request));
         if (!result.Success)
         {
-            return NotFound(new { message = result.Error });
+            return NotFound(new { message = result.Error ?? "Unable to complete Update for Categories." });
         }
 
-        return Ok(result.Data);
+        return Ok(new { message = "Category updated successfully.", data = result.Data });
     }
 
     [HttpDelete("categories/{id:guid}")]
@@ -75,11 +74,11 @@ public class CategoriesController : ControllerBase
         var result = await _mediator.Send(new DeleteCategoryCommand(id));
         if (!result.Success)
         {
-            return NotFound(new { message = result.Error });
+            return NotFound(new { message = result.Error ?? "Unable to complete Delete for Categories." });
         }
 
         return Ok(new { message = "Category deleted successfully." });
 
     }
-    
+
 }

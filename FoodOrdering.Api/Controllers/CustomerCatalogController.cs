@@ -1,6 +1,4 @@
-using FoodOrdering.Api.Security;
-using FoodOrdering.Api.Services;
-using FoodOrdering.Api.Mediator.Queries;
+using FoodOrdering.Application.Mediator.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,25 +21,15 @@ public class CustomerCatalogController : ControllerBase
     public async Task<IActionResult> Get()
     {
         var result = await _mediator.Send(new CustomerCatalogGetQuery(User));
-        return ToResponse(result);
+        return result.Outcome switch
+        {
+            ServiceOutcome.Success => Ok(new { message = "Customer catalog retrieved successfully.", data = result.Data }),
+            ServiceOutcome.Created => StatusCode(201, new { message = "Customer catalog retrieved successfully.", data = result.Data }),
+            ServiceOutcome.Invalid => BadRequest(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Customer catalog: The input is invalid.", data = result.Data }),
+            ServiceOutcome.Conflict => Conflict(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Customer catalog: The current state prevents this operation.", data = result.Data }),
+            ServiceOutcome.NotFound => NotFound(new { message = result.Data?.GetType().GetProperty("message")?.GetValue(result.Data) as string ?? "Customer catalog not found.", data = result.Data }),
+            _ => throw new InvalidOperationException("Unknown service outcome.")
+        };
     }
 
-    private IActionResult ToResponse(ServiceResult result)
-    {
-        switch (result.Outcome)
-        {
-            case ServiceOutcome.Success:
-                return Ok(result.Data);
-            case ServiceOutcome.Created:
-                return StatusCode(201, result.Data);
-            case ServiceOutcome.Invalid:
-                return BadRequest(result.Data);
-            case ServiceOutcome.Conflict:
-                return Conflict(result.Data);
-            case ServiceOutcome.NotFound:
-                return result.Data == null ? NotFound() : NotFound(result.Data);
-            default:
-                throw new InvalidOperationException("Unknown service outcome.");
-        }
-    }
 }

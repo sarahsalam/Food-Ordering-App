@@ -1,5 +1,5 @@
-using FoodOrdering.Api.Models.Requests;
-using FoodOrdering.Api.Mediator.Commands;
+using FoodOrdering.Application.DTOs.Requests;
+using FoodOrdering.Application.Mediator.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new
             {
-                message = result.Error
+                message = result.Error ?? "Registration failed."
             });
         }
 
@@ -44,7 +44,7 @@ public class AuthController : ControllerBase
         {
             return Unauthorized(new
             {
-                message = result.Error
+                message = result.Error ?? "Invalid email or password."
             });
         }
 
@@ -72,11 +72,12 @@ public class AuthController : ControllerBase
 
         if (!result.Success)
         {
-            return Unauthorized(new { message = result.Error });
+            return Unauthorized(new { message = result.Error ?? "The refresh token is invalid or expired." ?? "Unable to complete Refresh for Auth." });
         }
 
         return Ok(new
         {
+            message = "Access token refreshed successfully.",
             accessToken = result.AccessToken,
             refreshToken = result.RefreshToken
         });

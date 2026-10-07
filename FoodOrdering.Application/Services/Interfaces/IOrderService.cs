@@ -1,0 +1,12 @@
+using FoodOrdering.Application.DTOs.Requests;
+using FoodOrdering.Application.DTOs.Responses;
+
+namespace FoodOrdering.Application.Services.Interfaces;
+
+public interface IOrderService
+{
+    Task<List<OrderResponse>> GetAsync(string? status, Guid? userId);
+    Task<OrderResponse?> GetByIdAsync(Guid id);
+    Task<(bool Success, string? Error, OrderResponse? Data)> CreateAsync(CreateOrderRequest request);
+    Task<(bool Success, string? Error, OrderResponse? Data)> UpdateAsync(Guid id, UpdateOrderRequest request);
+}

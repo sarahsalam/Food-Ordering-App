@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
-using FoodOrdering.Api.Security;
-using FoodOrdering.Api.Mediator.Commands;
-using FoodOrdering.Api.Mediator.Queries;
+using FoodOrdering.Application.Mediator.Commands;
+using FoodOrdering.Application.Mediator.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +21,7 @@ public class ProductAddonsController : ControllerBase
     public async Task<IActionResult> Get(Guid productId)
     {
         var result = await _mediator.Send(new ProductAddonsQuery(productId));
-        return result.Exists ? Ok(result.Data) : NotFound();
+        return result.Exists ? Ok(new { message = "Product addon retrieved successfully.", data = result.Data }) : NotFound(new { message = "Product not found." });
     }
 
     [HttpPost("products/{productId:guid}/addons/{addonId:guid}")]
@@ -39,13 +38,13 @@ public class ProductAddonsController : ControllerBase
 
             if (result.Error?.Contains("not found", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return NotFound(new { message = result.Error });
+                return NotFound(new { message = result.Error ?? "Unable to complete Add for ProductAddons." });
             }
 
-            return BadRequest(new { message = result.Error });
+            return BadRequest(new { message = result.Error ?? "Unable to complete Add for ProductAddons." });
         }
 
-        return StatusCode(201, result.Data);
+        return StatusCode(201, new { message = "Product addon added successfully.", data = result.Data });
     }
 
     [HttpDelete("products/{productId:guid}/addons/{addonId:guid}")]
@@ -55,7 +54,7 @@ public class ProductAddonsController : ControllerBase
         var result = await _mediator.Send(new DeleteProductAddonCommand(productId, addonId));
         if (!result.Success)
         {
-            return NotFound(new { message = result.Error });
+            return NotFound(new { message = result.Error ?? "Unable to complete Remove for ProductAddons." });
         }
 
         return Ok(new { message = "Product addon deleted successfully." });

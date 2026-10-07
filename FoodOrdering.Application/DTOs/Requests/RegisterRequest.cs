@@ -1,0 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace FoodOrdering.Application.DTOs.Requests;
+
+public class RegisterRequest
+{
+    [MaxLength(255)]
+    public string FullName { get; set; } = string.Empty;
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
